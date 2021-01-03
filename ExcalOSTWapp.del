@@ -1,0 +1,76 @@
+globalvar define tempHealingDealt;
+globalvar define tempHeroDamageDealt;
+globalvar define tempDamageTaken;
+globalvar define tempUltimatesUsed;
+globalvar define tempUltimatesEarned;
+globalvar define tempDeaths;
+globalvar define tempWeaponAccuracy;
+globalvar define tempCriticalHitAccuracy;
+globalvar define tempScopedAccuracy;
+globalvar define tempSoloKills;
+globalvar define tempObjectiveKills;
+globalvar define tempHealingReceived;
+globalvar define tempDamageBlocked;
+globalvar define index = 1;
+rule: "Logging to inspector player stats"
+if (IsBetweenRounds())
+{
+    // Log to inspector outside of loop
+    // Do sum math inside of loop
+    foreach(define player in AllPlayers(Team.Team1))
+    {
+        foreach(define hero in AllHeroes())
+        {
+            // Create sums from all heros played to log to inspector
+            // Instead of all tanks, just tanks that can block damage
+            if(ArrayContains(AllTankHeroes(), HeroOf(player)))
+            { tempDamageBlocked += PlayerHeroStat(player, hero, PlayerHeroStat.DamageBlocked); }
+            else if(ArrayContains(AllDamageHeroes(), HeroOf(player)))
+            {}
+            else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
+            { tempHealingDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HealingDealt); }
+            tempHeroDamageDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt);
+            tempDamageTaken += PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken);
+            tempUltimatesUsed += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesUsed);
+            tempUltimatesEarned += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesEarned);
+            tempDeaths += PlayerHeroStat(player, hero, PlayerHeroStat.Deaths);
+            tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
+            tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
+            tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
+            tempSoloKills += PlayerHeroStat(player, hero, PlayerHeroStat.SoloKills);
+            tempObjectiveKills += PlayerHeroStat(player, hero, PlayerHeroStat.ObjectiveKills);
+            tempHealingReceived += PlayerHeroStat(player, hero, PlayerHeroStat.HealingReceived);
+            index++;
+        }
+        // Log to inspector stats
+        // Log tank specific info only if tank
+        if(ArrayContains(AllTankHeroes(), HeroOf(player)))
+        { LogToInspector(<"<0> Damage Blocked: <1>", player, tempDamageBlocked>); }
+        // Log support specific info only if support
+        else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
+        { LogToInspector(<"<0> Healing Done: <1>", player,tempHealingDealt>); }
+        // For weapon accuracy I'm adding them together and dividing by index
+        // To get the average accuracy over all players
+        // PlayerStat give only of the last hero I think
+        //tempWeaponAccuracy += PlayerHeroStat(player, PlayerHeroStat.WeaponAccuracy);
+        //tempWeaponAccuracy /= index;
+        //// If damage done > 0 use as diviser for weapon accuracy
+        //// Do that for scoped accuracy and critical hit accuracy
+        LogToInspector(<"<0> Damage Done: <1>", player, tempHeroDamageDealt>);
+        LogToInspector(<"<0> Damage Taken: <1>", player, tempDamageTaken>);
+        LogToInspector(<"<0> Ultimates Used: <1>", player, tempUltimatesUsed>);
+        LogToInspector(<"<0> Ultimates Earned: <1>", player, tempUltimatesEarned>);
+        LogToInspector(<"<0> Deaths: <1>", player, tempDeaths>);
+        LogToInspector(<"<0> Weapon Accuracy: <1>", player, tempWeaponAccuracy>);
+        LogToInspector(<"<0> Critical Hits Accuracy: <1>", player, tempCriticalHitAccuracy>);
+        LogToInspector(<"<0> Scoped Weapon Accuracy: <1>", player, tempScopedAccuracy>);
+        LogToInspector(<"<0> Solo Kills: <1>", player, tempSoloKills>);
+        LogToInspector(<"<0> Objective Kills: <1>", player, tempObjectiveKills>);
+        LogToInspector(<"<0> Healing Reveived: <1>", player, tempHealingReceived>);
+        tempDamageBlocked = 0; tempHealingDealt = 0; tempHeroDamageDealt = 0;
+        tempDamageTaken = 0; tempUltimatesUsed = 0; tempUltimatesEarned = 0;
+        tempDeaths = 0; tempWeaponAccuracy = 0; tempCriticalHitAccuracy = 0;
+        tempScopedAccuracy = 0; tempSoloKills = 0; tempObjectiveKills = 0;
+        tempHealingReceived = 0;
+    }
+}
