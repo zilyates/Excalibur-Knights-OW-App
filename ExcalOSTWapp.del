@@ -20,6 +20,7 @@ globalvar define tempMultiKillBest;
 globalvar define tempMultiKillNum;
 globalvar define tempOffensiveAssists;
 globalvar define index = 1;
+globalvar define heroCount = 0;
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
@@ -37,14 +38,26 @@ if (IsBetweenRounds())
             {}
             else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
             { tempHealingDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HealingDealt); }
+            if(PlayerStat.DamageTaken)
+            {
+                heroCount++;
+                //// If damage done > 0 use as diviser for weapon accuracy
+                //// Do that for scoped accuracy and critical hit accuracy
+                tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
+                tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
+                tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
+                tempScopedAccuracy /= heroCount;
+                tempWeaponAccuracy /= heroCount;
+                tempCriticalHitAccuracy /= heroCount;
+            }
             tempHeroDamageDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt);
             tempDamageTaken += PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken);
             tempUltimatesUsed += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesUsed);
             tempUltimatesEarned += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesEarned);
             tempDeaths += PlayerHeroStat(player, hero, PlayerHeroStat.Deaths);
-            tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
-            tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
-            tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
+            //tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
+            //tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
+            //tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
             tempSoloKills += PlayerHeroStat(player, hero, PlayerHeroStat.SoloKills);
             tempObjectiveKills += PlayerHeroStat(player, hero, PlayerHeroStat.ObjectiveKills);
             tempHealingReceived += PlayerHeroStat(player, hero, PlayerHeroStat.HealingReceived);
@@ -59,19 +72,11 @@ if (IsBetweenRounds())
             index++;
         }
         // Log to inspector stats
-        // Log tank specific info only if tank
         if(ArrayContains(AllTankHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Damage Blocked: <1>", player, tempDamageBlocked>); }
         // Log support specific info only if support
         else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Healing Done: <1>", player,tempHealingDealt>); }
-        // For weapon accuracy I'm adding them together and dividing by index
-        // To get the average accuracy over all players
-        // PlayerStat give only of the last hero I think
-        //tempWeaponAccuracy += PlayerHeroStat(player, PlayerHeroStat.WeaponAccuracy);
-        //tempWeaponAccuracy /= index;
-        //// If damage done > 0 use as diviser for weapon accuracy
-        //// Do that for scoped accuracy and critical hit accuracy
         LogToInspector(<"<0> Damage Done: <1>", player, tempHeroDamageDealt>);
         LogToInspector(<"<0> Damage Taken: <1>", player, tempDamageTaken>);
         LogToInspector(<"<0> Ultimates Used: <1>", player, tempUltimatesUsed>);
