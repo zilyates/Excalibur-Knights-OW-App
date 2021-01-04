@@ -82,6 +82,7 @@ if (IsBetweenRounds())
         LogToInspector(<"<0> Scoped Weapon Accuracy: <1>", player, tempScopedAccuracy>);
         LogToInspector(<"<0> Solo Kills: <1>", player, tempSoloKills>);
         LogToInspector(<"<0> Objective Kills: <1>", player, tempObjectiveKills>);
+        LogToInspector(<"<0> Healing Received: <1>", player, tempHealingReceived>);
         LogToInspector(<"<0> Eliminations: <1>", player, tempEliminations>);
         LogToInspector(<"<0> Defensive Assists: <1>", player, tempDefensiveAssists>);
         LogToInspector(<"<0> Final Blows: <1>", player, tempFinalBlows>);
