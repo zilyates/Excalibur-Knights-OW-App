@@ -23,9 +23,6 @@ globalvar define index = 1;
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
-    //////////////////////////////////
-    if (PlayerStat.DamageTaken)
-    {}
     // Log to inspector outside of loop
     // Do sum math inside of loop
     foreach(define player in AllPlayers(Team.Team1))
