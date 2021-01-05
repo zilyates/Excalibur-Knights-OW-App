@@ -38,7 +38,7 @@ if (IsBetweenRounds())
             {}
             else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
             { tempHealingDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HealingDealt); }
-            if(PlayerStat.DamageTaken)
+            if(PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken) > 0)
             {
                 heroCount++;
                 //// If damage done > 0 use as diviser for weapon accuracy
