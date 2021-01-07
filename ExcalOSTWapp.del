@@ -23,6 +23,10 @@ globalvar define index = 1;
 globalvar define weaponAccHeros = 0;
 globalvar define scopedAccHeros = 0;
 globalvar define critAccHeros = 0;
+globalvar define symSecAcc = 0;
+globalvar define symSec = 0;
+globalvar define symPrimAcc = 0;
+globalvar define symPrim = 0;
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
@@ -57,6 +61,19 @@ if (IsBetweenRounds())
                 scopedAccHeros++;
                 tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
             }
+            // Vars used to calculate sym primary and secondary fire
+            // Might need to make this calculate throughout the game NEEDS TESTING
+            if(hero == Hero.Symmetra)
+            {
+                if(PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt) && IsFiringSecondary(player))
+                { symSecAcc++; }
+                if(IsFiringSecondary(player))
+                { symSec++; }
+                if(PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt) && IsFiringPrimary(player))
+                { symPrimAcc++; }
+                if(IsFiringPrimary(player))
+                { symPrim++; }
+            }
             tempHeroDamageDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt);
             tempDamageTaken += PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken);
             tempUltimatesUsed += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesUsed);
@@ -66,7 +83,7 @@ if (IsBetweenRounds())
             tempObjectiveKills += PlayerHeroStat(player, hero, PlayerHeroStat.ObjectiveKills);
             tempHealingReceived += PlayerHeroStat(player, hero, PlayerHeroStat.HealingReceived);
         }
-        // Put here cuz overall player stats not player specific
+        // Put here cuz overall player stats not hero specific
         tempEliminations += PlayerStat(player, PlayerStat.Eliminations);
         tempDefensiveAssists += PlayerStat(player, PlayerStat.DefensiveAssists);
         tempFinalBlows += PlayerStat(player, PlayerStat.FinalBlows);
@@ -75,6 +92,9 @@ if (IsBetweenRounds())
         tempMultiKillBest += PlayerStat(player, PlayerStat.MultikillBest);
         tempMultiKillNum += PlayerStat(player, PlayerStat.Multikills);
         tempOffensiveAssists += PlayerStat(player, PlayerStat.OffensiveAssists);
+        // Calculate sym primary and secondary fire accuracy
+        symSecAcc /= symSec;
+        symPrimAcc /= symPrim;
         tempScopedAccuracy /= scopedAccHeros;
         tempWeaponAccuracy /= weaponAccHeros;
         tempCriticalHitAccuracy /= critAccHeros;
