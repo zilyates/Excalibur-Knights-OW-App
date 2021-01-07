@@ -20,7 +20,9 @@ globalvar define tempMultiKillBest;
 globalvar define tempMultiKillNum;
 globalvar define tempOffensiveAssists;
 globalvar define index = 1;
-globalvar define heroCount = 0;
+globalvar define weaponAccHeros = 0;
+globalvar define scopedAccHeros = 0;
+globalvar define critAccHeros = 0;
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
@@ -32,32 +34,34 @@ if (IsBetweenRounds())
         {
             // Create sums from all heros played to log to inspector
             // Instead of all tanks, just tanks that can block damage
+            // If else tank dps support
+            // if damage check accuracy stats
             if(ArrayContains(AllTankHeroes(), HeroOf(player)))
             { tempDamageBlocked += PlayerHeroStat(player, hero, PlayerHeroStat.DamageBlocked); }
             else if(ArrayContains(AllDamageHeroes(), HeroOf(player)))
             {}
             else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
             { tempHealingDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HealingDealt); }
-            if(PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken) > 0)
+            if(PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy) > 0)
             {
-                heroCount++;
-                //// If damage done > 0 use as diviser for weapon accuracy
-                //// Do that for scoped accuracy and critical hit accuracy
-                tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
+                weaponAccHeros++;
                 tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
+            }
+            if(PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy) > 0)
+            {
+                critAccHeros++;
                 tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
-                tempScopedAccuracy /= heroCount;
-                tempWeaponAccuracy /= heroCount;
-                tempCriticalHitAccuracy /= heroCount;
+            }
+            if(PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy) > 0)
+            {
+                scopedAccHeros++;
+                tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
             }
             tempHeroDamageDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt);
             tempDamageTaken += PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken);
             tempUltimatesUsed += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesUsed);
             tempUltimatesEarned += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesEarned);
             tempDeaths += PlayerHeroStat(player, hero, PlayerHeroStat.Deaths);
-            //tempWeaponAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.WeaponAccuracy);
-            //tempCriticalHitAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.CriticalHitAccuracy);
-            //tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
             tempSoloKills += PlayerHeroStat(player, hero, PlayerHeroStat.SoloKills);
             tempObjectiveKills += PlayerHeroStat(player, hero, PlayerHeroStat.ObjectiveKills);
             tempHealingReceived += PlayerHeroStat(player, hero, PlayerHeroStat.HealingReceived);
@@ -69,12 +73,12 @@ if (IsBetweenRounds())
             tempMultiKillBest += PlayerStat(player, PlayerStat.MultikillBest);
             tempMultiKillNum += PlayerStat(player, PlayerStat.Multikills);
             tempOffensiveAssists += PlayerStat(player, PlayerStat.OffensiveAssists);
-            index++;
         }
-        // Log to inspector stats
+        tempScopedAccuracy /= scopedAccHeros;
+        tempWeaponAccuracy /= weaponAccHeros;
+        tempCriticalHitAccuracy /= critAccHeros;
         if(ArrayContains(AllTankHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Damage Blocked: <1>", player, tempDamageBlocked>); }
-        // Log support specific info only if support
         else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Healing Done: <1>", player,tempHealingDealt>); }
         LogToInspector(<"<0> Damage Done: <1>", player, tempHeroDamageDealt>);
@@ -96,10 +100,12 @@ if (IsBetweenRounds())
         LogToInspector(<"<0> Multikill Best: <1>", player, tempMultiKillBest>);
         LogToInspector(<"<0> Multikills: <1>", player, tempMultiKillNum>);
         LogToInspector(<"<0> Offensive Assists: <1>", player, tempOffensiveAssists>);
-        tempDamageBlocked = 0; tempHealingDealt = 0; tempHeroDamageDealt = 0;
-        tempDamageTaken = 0; tempUltimatesUsed = 0; tempUltimatesEarned = 0;
-        tempDeaths = 0; tempWeaponAccuracy = 0; tempCriticalHitAccuracy = 0;
-        tempScopedAccuracy = 0; tempSoloKills = 0; tempObjectiveKills = 0;
-        tempHealingReceived = 0;
+        tempDamageBlocked = 0;   tempHealingDealt = 0;   tempHeroDamageDealt = 0;
+        tempDamageTaken = 0;     tempUltimatesUsed = 0;  tempUltimatesEarned = 0;
+        tempDeaths = 0;          tempWeaponAccuracy = 0; tempCriticalHitAccuracy = 0;
+        tempScopedAccuracy = 0;  tempSoloKills = 0;      tempObjectiveKills = 0;
+        tempHealingReceived = 0; tempEliminations = 0;   tempDefensiveAssists = 0;
+        tempFinalBlows = 0;      tempEnvirDeaths = 0;    tempEnvirKills = 0;
+        tempMultiKillBest = 0;   tempMultiKillNum = 0;   tempOffensiveAssists = 0;
     }
 }
