@@ -61,19 +61,6 @@ if (IsBetweenRounds())
                 scopedAccHeros++;
                 tempScopedAccuracy += PlayerHeroStat(player, hero, PlayerHeroStat.ScopedAccuracy);
             }
-            // Vars used to calculate sym primary and secondary fire
-            // Might need to make this calculate throughout the game NEEDS TESTING
-            if(hero == Hero.Symmetra)
-            {
-                if(PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt) && IsFiringSecondary(player))
-                { symSecAcc++; }
-                if(IsFiringSecondary(player))
-                { symSec++; }
-                if(PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt) && IsFiringPrimary(player))
-                { symPrimAcc++; }
-                if(IsFiringPrimary(player))
-                { symPrim++; }
-            }
             tempHeroDamageDealt += PlayerHeroStat(player, hero, PlayerHeroStat.HeroDamageDealt);
             tempDamageTaken += PlayerHeroStat(player, hero, PlayerHeroStat.DamageTaken);
             tempUltimatesUsed += PlayerHeroStat(player, hero, PlayerHeroStat.UltimatesUsed);
@@ -92,9 +79,6 @@ if (IsBetweenRounds())
         tempMultiKillBest += PlayerStat(player, PlayerStat.MultikillBest);
         tempMultiKillNum += PlayerStat(player, PlayerStat.Multikills);
         tempOffensiveAssists += PlayerStat(player, PlayerStat.OffensiveAssists);
-        // Calculate sym primary and secondary fire accuracy
-        symSecAcc /= symSec;
-        symPrimAcc /= symPrim;
         tempScopedAccuracy /= scopedAccHeros;
         tempWeaponAccuracy /= weaponAccHeros;
         tempCriticalHitAccuracy /= critAccHeros;
@@ -102,6 +86,17 @@ if (IsBetweenRounds())
         { LogToInspector(<"<0> Damage Blocked: <1>", player, tempDamageBlocked>); }
         else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Healing Done: <1>", player,tempHealingDealt>); }
+        //if(symPrimAcc && symSecAcc)
+        //{
+            //LogToInspector(<"<0> Primary Fire Accuracy: <1>", player, symPrimAcc>);
+            //LogToInspector(<"<0> Secondary Fire Accuracy: <1>", player, symSecAcc>);
+        //}
+        //else
+        //{
+        //LogToInspector(<"<0> Weapon Accuracy: <1>", player, tempWeaponAccuracy>);
+        //LogToInspector(<"<0> Critical Hits Accuracy: <1>", player, tempCriticalHitAccuracy>);
+        //LogToInspector(<"<0> Scoped Weapon Accuracy: <1>", player, tempScopedAccuracy>);
+        //}
         LogToInspector(<"<0> Damage Done: <1>", player, tempHeroDamageDealt>);
         LogToInspector(<"<0> Damage Taken: <1>", player, tempDamageTaken>);
         LogToInspector(<"<0> Ultimates Used: <1>", player, tempUltimatesUsed>);
@@ -128,5 +123,38 @@ if (IsBetweenRounds())
         tempHealingReceived = 0; tempEliminations = 0;   tempDefensiveAssists = 0;
         tempFinalBlows = 0;      tempEnvirDeaths = 0;    tempEnvirKills = 0;
         tempMultiKillBest = 0;   tempMultiKillNum = 0;   tempOffensiveAssists = 0;
+        symPrimAcc = 0;          symSecAcc = 0;
     }
 }
+// ERROR
+// OSTW might be rounding down when doing division for accuracy
+
+//rule: "Record Sym Stats" -1
+//if(IsGameInProgress())
+//{
+    // Vars used to calculate sym primary and secondary fire
+    // Might need to make this calculate throughout the game NEEDS TESTING
+    //foreach(define player in AllPlayers(Team.Team1))
+    //{
+        //if(HeroOf(player) == Hero.Symmetra)
+        //{
+            //if(PlayerHeroStat(player, Hero.Symmetra, PlayerHeroStat.HeroDamageDealt) && IsFiringSecondary(player))
+            //{ symSecAcc++; }
+            //if(IsFiringSecondary(player))
+            //{ symSec++; }
+            //if(PlayerHeroStat(player, Hero.Symmetra, PlayerHeroStat.HeroDamageDealt) && IsFiringPrimary(player))
+            //{ symPrimAcc++; }
+            //if(IsFiringPrimary(player))
+            //{ symPrim++; }
+        //}
+        // Calculate sym primary and secondary fire accuracy
+        //symSecAcc /= symSec;
+        //symPrimAcc /= symPrim;
+        // LogToInspector(<"<0> symPrim++", symPrim>)
+        // LogToInspector(<"<0> symPrimAcc++", symPrimAcc>);
+        // LogToInspector(<"<0> symSec++", symSec>)
+        //LogToInspector(<"<0> symSecAcc++", symSecAcc>)
+        //LogToInspector(<"<0> Primary Fire Accuracy: <1>", player, symPrimAcc>);
+        //LogToInspector(<"<0> Secondary Fire Accuracy: <1>", player, symSecAcc>);
+    //}
+//}
