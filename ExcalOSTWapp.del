@@ -65,15 +65,16 @@ if (IsBetweenRounds())
             tempSoloKills += PlayerHeroStat(player, hero, PlayerHeroStat.SoloKills);
             tempObjectiveKills += PlayerHeroStat(player, hero, PlayerHeroStat.ObjectiveKills);
             tempHealingReceived += PlayerHeroStat(player, hero, PlayerHeroStat.HealingReceived);
-            tempEliminations += PlayerStat(player, PlayerStat.Eliminations);
-            tempDefensiveAssists += PlayerStat(player, PlayerStat.DefensiveAssists);
-            tempFinalBlows += PlayerStat(player, PlayerStat.FinalBlows);
-            tempEnvirDeaths += PlayerStat(player, PlayerStat.EnvironmentalDeaths);
-            tempEnvirKills += PlayerStat(player, PlayerStat.EnvironmentalKills);
-            tempMultiKillBest += PlayerStat(player, PlayerStat.MultikillBest);
-            tempMultiKillNum += PlayerStat(player, PlayerStat.Multikills);
-            tempOffensiveAssists += PlayerStat(player, PlayerStat.OffensiveAssists);
         }
+        // Put here cuz overall player stats not player specific
+        tempEliminations += PlayerStat(player, PlayerStat.Eliminations);
+        tempDefensiveAssists += PlayerStat(player, PlayerStat.DefensiveAssists);
+        tempFinalBlows += PlayerStat(player, PlayerStat.FinalBlows);
+        tempEnvirDeaths += PlayerStat(player, PlayerStat.EnvironmentalDeaths);
+        tempEnvirKills += PlayerStat(player, PlayerStat.EnvironmentalKills);
+        tempMultiKillBest += PlayerStat(player, PlayerStat.MultikillBest);
+        tempMultiKillNum += PlayerStat(player, PlayerStat.Multikills);
+        tempOffensiveAssists += PlayerStat(player, PlayerStat.OffensiveAssists);
         tempScopedAccuracy /= scopedAccHeros;
         tempWeaponAccuracy /= weaponAccHeros;
         tempCriticalHitAccuracy /= critAccHeros;
