@@ -29,28 +29,25 @@ globalvar define critAccHeros = 0;
 globalvar define isPlayingSym = null;    // The player who is using symmetra
 playervar define timeUsingPrimary = 0;   // Count the time symmetra is using her primary fire (need to be reset after a round)
 playervar define timeDamageDealt = 0;    // Count the second symmetra is dealing damage (need to be reset after a round)
-globalvar define isDoingDamage = 2;
+globalvar define isDoingDamage = 4;
+
 // secondary
 playervar define secondaryShotCount = 0;    // Count the Shot the player shot
 playervar define secondaryShotHitCount = 0; // Count the shots the player hit
 
 // For LOS checking
 playervar define deathOutLOS = 0;
-
-// testing for rule => check if the team is in support los
-globalvar define[] players = CreatArray();
-globalvar define flag = true;
-globalvar define overAllTeamTime = 0;   // count the time the entire team is in the support los
+globalvar define[] players;
+globalvar define overallTeamTime = 0;   // count the time the entire team is in the support los
 globalvar define damageRoleTime = 0;    // count the time the entire damage role is in the support los
 globalvar define tankRoleTime = 0;      // count the time the entire tank role is in the support los
 globalvar define roundTime = 0;         // the length of the round
 
-// los of team time   / round time = precent of good los for support (all team)
-// los of tank time   / round time = precent of good los for support (tank)
-// los of damage time / round time = precent of good los for support (damage)
+// for testing 
+globalvar define[] playerLOS;
 
-// move the support players to the start of the array (in work)
-public define[] CreatArray() {
+// create a team array and put the support players on the first 2 slots
+public define[] CreateTeamArray() {
     define[] arr;
     foreach (define player in AllPlayers(Team.Team1)) {
         arr.Append(player);
@@ -59,23 +56,23 @@ public define[] CreatArray() {
     for (define i = 0; i < arr.Length; i++) {
         if (ArrayContains(AllSupportHeroes(), HeroOf(arr[i]))) {
             define currentVal = arr[i];
-            define pre;
-            for (define a = 1; a < arr.Length && arr[a] != currentVal; a++) {
-                pre = arr[a - 1];
-                arr[a - 1] = arr[a];
-                //arr[a] = temp
+            define index = i;
+            define pre = arr[0];
+
+            for (define a = 1; a <= index; a++) {
+                define temp = arr[i];
+                arr[i] = pre;
+                pre = temp;
             }
             
-            // define temp = arr[0];
-            // arr[0] = arr[i];
-            // arr[i] = temp;
+            arr[0] = pre;
         }
     }
 
     return arr;
 }
 
-// chech if the entire team is in the support los (finish)
+// check if the entire team is in the support los (finish)
 public void CheckSupportLOSAllPlayers() {
     define counter;     // count the amount of heros in the support LOS
     for (define i = 0; i < players.Length; i++) {
@@ -88,10 +85,10 @@ public void CheckSupportLOSAllPlayers() {
     }
 
     if (counter == 6) {
-        ChaseVariableAtRate(overAllTeamTime, 9999, 1);
+        ChaseVariableAtRate(overallTeamTime, 9999, 1, RateChaseReevaluation.None);
     }
     else {
-        StopChasingVariable(overAllTeamTime);
+        StopChasingVariable(overallTeamTime);
     }
 }
 
@@ -110,7 +107,7 @@ public void CheckSupportLOSDamageRole() {
     }
 
     if (counter == 2) {
-        ChaseVariableAtRate(damageRoleTime, 9999, 1);
+        ChaseVariableAtRate(damageRoleTime, 9999, 1, RateChaseReevaluation.None);
     }
     else {
         StopChasingVariable(damageRoleTime);
@@ -132,7 +129,7 @@ public void CheckSupportLOSTankRole() {
     }
 
     if (counter == 2) {
-        ChaseVariableAtRate(tankRoleTime, 9999, 1);
+        ChaseVariableAtRate(tankRoleTime, 9999, 1, RateChaseReevaluation.None);
     }
     else {
         StopChasingVariable(tankRoleTime);
@@ -140,17 +137,9 @@ public void CheckSupportLOSTankRole() {
 }
 
 
-// Create an array with all the players on the team (only once)
-rule:"Create an array with all the players on the team"
-if (flag) {
-
-}
-
 // Log the stats to the inspector efter every round
 rule: "Logging to inspector player stats"
-if (IsBetweenRounds())
-{
-    
+if (IsBetweenRounds()) {  
     StopChasingVariable(roundTime);
     foreach(define player in AllPlayers(Team.Team1)) {
         //Going over every hero for hero specific stats
@@ -210,7 +199,7 @@ if (IsBetweenRounds())
         else if(ArrayContains(AllSupportHeroes(), HeroOf(player))) {
             LogToInspector(<"<0> Healing Done: <1>", player,tempHealingDealt>);
         }
-
+        
         //Log all of the stats into the insperctor
         LogToInspector(<"<0> Damage Done: <1>", player, tempHeroDamageDealt>);
         LogToInspector(<"<0> Damage Taken: <1>", player, tempDamageTaken>);
@@ -231,6 +220,7 @@ if (IsBetweenRounds())
         LogToInspector(<"<0> Multikill Best: <1>", player, tempMultiKillBest>);
         LogToInspector(<"<0> Multikills: <1>", player, tempMultiKillNum>);
         LogToInspector(<"<0> Offensive Assists: <1>", player, tempOffensiveAssists>);
+        LogToInspector(<"<0> Deaths outside of the support LOS: <1>", player, player.deathOutLOS>);
         //LogToInspector(<"<0> Time Using Primary Fire: <1>", player, timeUsingPrimary>);
         //LogToInspector(<"<0> Time Using Primary Fire: <1>", player, timeDamageDealtG>);
         //Reset all variables
@@ -242,18 +232,39 @@ if (IsBetweenRounds())
         tempFinalBlows = 0;      tempEnvirDeaths = 0;    tempEnvirKills = 0;
         tempMultiKillBest = 0;   tempMultiKillNum = 0;   tempOffensiveAssists = 0;
     }
+    // Symmetra stats
+    define primaryAccuracy = isPlayingSym.timeDamageDealt / isPlayingSym.timeUsingPrimary;
+    define secondaryAccuracy = isPlayingSym.secondaryShotHitCount / isPlayingSym.secondaryShotCount;
+    LogToInspector(<"<0> Primary weapon accuracy in symmerta: <1>",isPlayingSym , primaryAccuracy>);
+    LogToInspector(<"<0> Secondary weapon accuracy in symmerta: <1>",isPlayingSym , secondaryAccuracy>);
+    // LOS stats
+    define teamPercent = overallTeamTime / roundTime;
+    define damageRolePercent = damageRoleTime / roundTime;
+    define tankRolePercent = tankRoleTime / roundTime;
+    LogToInspector(<"Support LOS of the team: <0>", teamPercent>);
+    LogToInspector(<"Support LOS of the dps: <0>", damageRolePercent>);
+    LogToInspector(<"Support LOS of the tank: <0>", tankRolePercent>);
     roundTime = 0;
+    overallTeamTime = 0;
+    damageRoleTime = 0;
+    tankRoleTime = 0;
+    LogToInspector("testing");
+    foreach(define value in playerLOS) {
+        LogToInspector(<"<0>", value>);
+    }
 }
+
 
 // Calculate the time sym using her primary fire (Need to be tested)
 rule:"Find a Symmetra player"
-Event.OngoingGlobal
 if (IsGameInProgress()) {
-    foreach (define player in AllPlayers(Team.Team1)) {
-        if (HeroOf(player) == Hero.Symmetra) {
-            isPlayingSym = player;
-            LogToInspector(<"<0> is playing symmetra", player>);
-            break;
+    if (HeroOf(isPlayingSym) == Hero.Symmetra) {
+        players = CreateTeamArray();
+        foreach (define player in AllPlayers(Team.Team1)) {
+            if (HeroOf(player) == Hero.Symmetra) {
+                isPlayingSym = player;
+                break;
+            }
         }
     }
 }
@@ -264,43 +275,34 @@ rule:"Is Symmetra using Primary"
 Event.OngoingGlobal
 if (isPlayingSym != null) {
     if (IsButtonHeld(isPlayingSym, Button.PrimaryFire)) {   // If using primary fire => start counting time
-        ChaseVariableAtRate(isPlayingSym.timeUsingPrimary, 9999, 1);
-        LogToInspector(<"Start chasing time using primary <0>", isPlayingSym.timeUsingPrimary>);
+        ChaseVariableAtRate(isPlayingSym.timeUsingPrimary, 9999, 1, RateChaseReevaluation.None);
     }
     else if (Not(IsButtonHeld(isPlayingSym, Button.PrimaryFire))) { // If not using primary fire => stop counting time
         StopChasingVariable(isPlayingSym.timeUsingPrimary);
-        LogToInspector(<"Stop chasing time using primary <0>", isPlayingSym.timeUsingPrimary>);
     }
 }
 
-/* based on:
- * you will have to use another chase
- * chase the variable to 0 then set it to 4 on a "player dealt damage" event
- * if the var is 0 the player stopped doing damage
- */
+
 // Calculate symmetra primary fire weapon accuracy (finish)
 rule:"start timer when symmerta dealing damage"
 Event.OnDamageDealt
 if (EventPlayer() == isPlayingSym) {    // Make sure it will only work on our team sym player
     if (IsButtonHeld(isPlayingSym, Button.PrimaryFire)) {
-        ChaseVariableAtRate(isPlayingSym.timeDamageDealt, 9999, 1);
-        isDoingDamage = 2;
-        ChaseVariableAtRate(isDoingDamage, 0, 1);
-        LogToInspector(<"doing damage <0>", isPlayingSym.timeDamageDealt>);
+        ChaseVariableAtRate(isPlayingSym.timeDamageDealt, 9999, 1, RateChaseReevaluation.None);
+        isDoingDamage = 4;
+        ChaseVariableAtRate(isDoingDamage, 0, 1, RateChaseReevaluation.None);
     }
     else if (Not(IsButtonHeld(isPlayingSym, Button.Melee))) {
         isPlayingSym.secondaryShotHitCount++;
-        LogToInspector(<"hit a shot <0>", isPlayingSym.secondaryShotCount>);
     }
 }
 
 
-//stop Doing damage
+// stop Doing damage
 rule:"Stop timer when symmetra stop dealing damage"
 Event.OngoingGlobal
 if (isDoingDamage == 0) {    // Make sure to work only when the sym player isn't shooting
     StopChasingVariable(isPlayingSym.timeDamageDealt);
-    LogToInspector(<"Stopped doing damage <0>", isPlayingSym.timeDamageDealt>);
 }
 
 
@@ -310,26 +312,20 @@ Event.OngoingPlayer
 if (EventPlayer() == isPlayingSym) {   // Make sure it will only work on our team sym player
     if(IsFiringSecondary(EventPlayer())) {
         isPlayingSym.secondaryShotCount++;
-        LogToInspector(<"shot a shot <0>", isPlayingSym.secondaryShotCount>);
     }
 }
 
+
 // Out of support los
-//Check if a player died out side of support los (Need to be tested 2v2 dps & tank VS support & dps)
 rule:"Check if a player died out side of the support line of sight "
-Event.OnDeath
-{
+Event.OnDeath {
     foreach(define player in AllPlayers(Team.Team1)) {
         // If Player is not event player and if the player is alive and if the player is playing a support hero => true
         if (player != EventPlayer() && IsAlive(player) && ArrayContains(AllSupportHeroes(), HeroOf(player))) {
             // If the support player can't see event player or los blocked by enemy sheild => add to out of los death counter
             if (IsInLineOfSight(EyePosition(player), EyePosition(EventPlayer()), BarrierLOS.EnemyBarriersBlock)) {
                 EventPlayer().deathOutLOS++;
-                LogToInspector(<"Out Side the los">);
                 break;
-            }
-            else {
-                LogToInspector(<"In Side the los">);
             }
         }
     }
@@ -344,6 +340,16 @@ if (IsGameInProgress()) {
     CheckSupportLOSDamageRole();
     CheckSupportLOSTankRole();
     if (Not(IsBetweenRounds())) {
-        ChaseVariableAtRate(roundTime, 9999, 1);
+        ChaseVariableAtRate(roundTime, 9999, 1, RateChaseReevaluation.None);    // Stop counting the round time in the "Log stats to inspector" rule
+    }
+}
+
+
+// Testing idea for check if the player have a good los
+rule:"Check if the player have a good los"
+Event.OnDeath
+if (Not(IsBetweenRounds())) {
+    foreach (define player in AllPlayers(Team.Team1)) {
+        playerLOS = PlayersWithinRadius(EyePosition(player), 100, Team.All, RadiusLOS.SurfacesAndEnemyBarriers);
     }
 }
