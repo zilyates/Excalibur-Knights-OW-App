@@ -23,6 +23,17 @@ globalvar define index = 1;
 globalvar define weaponAccHeros = 0;
 globalvar define scopedAccHeros = 0;
 globalvar define critAccHeros = 0;
+///////////////////////////////////////
+// variables for symmetra functionality
+globalvar define symPlayer;
+globalvar define symPlayerChanged = false;
+globalvar define totalPrimFireTime = 0;
+globalvar define primFireDamageTime = 0;
+globalvar define symPrimWeaponAccuracy;
+globalvar define symSecWeaponAccuracy;
+globalvar define symTotalShotsFired = 0;
+globalvar define symDamagingShotsFired = 0;
+//////////////////////////////////////
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
@@ -78,6 +89,10 @@ if (IsBetweenRounds())
         tempScopedAccuracy /= scopedAccHeros;
         tempWeaponAccuracy /= weaponAccHeros;
         tempCriticalHitAccuracy /= critAccHeros;
+        ////////////// Calc sym acc stats
+        symPrimWeaponAccuracy = primFireDamageTime / totalPrimFireTime;
+        symSecWeaponAccuracy = symDamagingShotsFired / symTotalShotsFired;
+        //////////////
         if(ArrayContains(AllTankHeroes(), HeroOf(player)))
         { LogToInspector(<"<0> Damage Blocked: <1>", player, tempDamageBlocked>); }
         else if(ArrayContains(AllSupportHeroes(), HeroOf(player)))
@@ -108,5 +123,68 @@ if (IsBetweenRounds())
         tempHealingReceived = 0; tempEliminations = 0;   tempDefensiveAssists = 0;
         tempFinalBlows = 0;      tempEnvirDeaths = 0;    tempEnvirKills = 0;
         tempMultiKillBest = 0;   tempMultiKillNum = 0;   tempOffensiveAssists = 0;
+    }
+}
+
+rule: "Find sym player"
+if(IsGameInProgress())
+{
+    // variable += 1
+    // wait(0.016)
+    // loop if true
+    define count = 0;
+    foreach(define member in AllPlayers(Team.Team1))
+    {
+        if(count >= 1)
+        {
+            if(member != symPlayer)
+            {
+                LogToInspector(<"Player playing sym changed">);
+            }
+        }
+        // check if the dude playing sym changed
+        if(member == Hero.Symmetra)
+        {
+            symPlayer = member;
+        }
+        count = count + 1;
+    }
+}
+
+rule: "Sym Primary Fire Accuracy"
+if(IsGameInProgress())
+{
+    if(!symPlayerChanged)
+    {
+        define damaging = PlayerHeroStat(symPlayer, PlayerHeroStat.HeroDamageDealt);
+        while(IsFiringPrimary(symPlayer))
+        {
+            totalPrimFireTime++;
+            if(damaging < PlayerHeroStat.HeroDamageDealt)
+            {
+                primFireDamageTime++;
+            }
+            Wait(0.25);
+        }
+
+    }
+}
+
+rule: "Sym Secondary Fire Accuracy"
+if(IsGameInProgress())
+{
+    if(!symPlayerChanged)
+    {
+        // secondary fire accuracy
+        define damaging = PlayerHeroStat(symPlayer, PlayerHeroStat.HeroDamageDealt);
+        while(IsFiringSecondary(symPlayer)) // check if player fired secondary shot
+        {
+            symTotalShotsFired++;
+            if(damaging < PlayerHeroStat(symPlayer, PlayerHeroStat.HeroDamageDealt) && !IsFiringPrimary(symPlayer) && !IsMeleeing(symPlayer))
+            {
+                symDamagingShotsFired++;
+            }
+            Wait(0.25);
+        }
     }
 }
