@@ -36,6 +36,7 @@ globalvar define symTotalShotsFired = 0;
 globalvar define symDamagingShotsFired = 0;
 /////////////////////////////////////
 
+
 rule: "Logging to inspector player stats"
 if (IsBetweenRounds())
 {
